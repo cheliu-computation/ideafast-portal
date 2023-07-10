@@ -464,7 +464,9 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         }}
                     </Query>
                     <br />
-                    If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
+                    {/* If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br /> */}
+                    The CAD file name must be as the form <Tag style={{ fontFamily: 'monospace' }}>DrawingID.dwg</Tag>. If not, you rename the file.<br /><br />
+                    The PNG file name must be as the form <Tag style={{ fontFamily: 'monospace' }}>DrawingID.png</Tag>. If not, you rename the file.<br /><br />
                     <Upload {...uploaderProps}>
                         <Button>Select files</Button>
                     </Upload>

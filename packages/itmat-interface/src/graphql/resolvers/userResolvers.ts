@@ -234,14 +234,15 @@ export const userResolvers = {
                 throw new GraphQLError('Incorrect password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
+            // comment this part to avoid OTP, disable OTP
             // validate the TOTP
-            const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
-                if (process.env.NODE_ENV === 'development')
-                    console.warn('Incorrect One-Time password. Continuing in development ...');
-                else
-                    throw new GraphQLError('Incorrect One-Time password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
-            }
+            // const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
+            // if (!totpValidated) {
+            //     if (process.env.NODE_ENV === 'development')
+            //         console.warn('Incorrect One-Time password. Continuing in development ...');
+            //     else
+            //         throw new GraphQLError('Incorrect One-Time password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+            // }
 
             /* validate if account expired */
             if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
