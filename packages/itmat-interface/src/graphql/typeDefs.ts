@@ -551,6 +551,12 @@ type Query {
     getLogs(requesterName: String, requesterType: USERTYPE, logType: LOG_TYPE, actionType: LOG_ACTION, status: LOG_STATUS): [Log]
 }
 
+
+
+# modify api reuire 3 parts:
+# 1. typeDefs.ts, 2. claim function, 2. xxresovlers, 3. user resolvers 
+# "String" is the data type of graphql
+
 type Mutation {
     # USER
     login(username: String!, password: String!, totp: String!, requestexpirydate: Boolean): User

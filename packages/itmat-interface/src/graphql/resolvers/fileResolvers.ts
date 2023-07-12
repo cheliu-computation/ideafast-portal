@@ -27,35 +27,57 @@ export const fileResolvers = {
             // get the target fieldId of this file
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
+            // check permission for subject data
             const hasStudyLevelSubjectPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
+
+            // check permission for study data
             const hasStudyLevelStudyDataPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.own,
                 atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
+
+            // if the user has neither permission, throw error
             if (!hasStudyLevelSubjectPermission && !hasStudyLevelStudyDataPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
+            // define two variables: targetFieldId and isStudyLevel
+            // targetFieldId: hold the ID of the target field for the data
+            // isStudyLevel: initially set to false, if the file is study-level data, then set to true
             let targetFieldId: string;
             let isStudyLevel = false;
+
             // obtain sitesIDMarker from db
+            // fetches all undeleted organizations from the database,
+            // then creates an object where the keys are site ID markers
+            // and the values are the corresponding organization's short names
             const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<any>((acc, curr) => {
                 if (curr.metadata?.siteIDMarker) {
                     acc[curr.metadata.siteIDMarker] = curr.shortname;
                 }
                 return acc;
             }, {});
+
             // if the description object is empty, then the file is study-level data
             // otherwise, a subjectId must be provided in the description object
             // we will check other properties in the decription object (deviceId, startDate, endDate)
+            //  modified part
+            // parse the description object
             const parsedDescription = JSON.parse(args.description);
+
+            //  throws an error if the description couldn't be parsed correctly
             if (!parsedDescription) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
+
+            // checks if a participant ID is included in the description.
+            // If yes, then the code validates the participant ID and other properties,
+            // infers the target field ID, and checks permissions for this field.
+            // if not, then the file is study-level data
             if (!parsedDescription.participantId) {
                 isStudyLevel = true;
             } else {
@@ -89,6 +111,7 @@ export const fileResolvers = {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
+            // end modified part
 
             const file = await args.file;
             const fileNameParts = file.filename.split('.');
