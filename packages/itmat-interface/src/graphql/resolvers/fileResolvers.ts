@@ -69,6 +69,7 @@ export const fileResolvers = {
             // parse the description object
             const parsedDescription = JSON.parse(args.description);
 
+            console.log(parsedDescription);
             //  throws an error if the description couldn't be parsed correctly
             if (!parsedDescription) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
@@ -82,19 +83,40 @@ export const fileResolvers = {
                 isStudyLevel = true;
             } else {
                 isStudyLevel = false;
-                if (!Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase())) {
-                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                }
+                // if (!Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase())) {
+                //     throw new GraphQLError('File description is qinvalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                // }
                 // check deviceId, startDate, endDate if necessary
-                if (parsedDescription.deviceId && parsedDescription.startDate && parsedDescription.endDate) {
-                    if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
-                        !validate(parsedDescription.participantId?.substr(1) ?? '') ||
-                        !validate(parsedDescription.deviceId.substr(3) ?? '')) {
-                        throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                    }
+
+                if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase())) {
+                    console.log('true');
                 } else {
-                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                    console.log(Object.keys(deviceTypes));
+                    console.log(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase());
+                    console.log(Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()));
                 }
+                if (!validate(parsedDescription.participantId?.substr(1) ?? '')) {
+                    console.log('true');
+                } else {
+                    console.log(!validate(parsedDescription.participantId?.substr(1) ?? ''));
+                }
+
+                if (!validate(parsedDescription.deviceId.substr(3) ?? '')) {
+                    console.log('true');
+                } else {
+                    console.log(!validate(parsedDescription.deviceId.substr(3) ?? ''));
+                }
+
+                // if (parsedDescription.deviceId && parsedDescription.startDate && parsedDescription.endDate) {
+                //     if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
+                //         !validate(parsedDescription.participantId?.substr(1) ?? '') ||
+                //         !validate(parsedDescription.deviceId.substr(3) ?? '')) {
+                //         throw new GraphQLError('File description is qinvalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                //     }
+                // } else {
+                //     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                // }
+
                 // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
                 if (parsedDescription.fieldId) {
                     targetFieldId = parsedDescription.fieldId;
@@ -102,10 +124,15 @@ export const fileResolvers = {
                     const device = parsedDescription.deviceId?.slice(0, 3);
                     targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
+
+                console.log(targetFieldId);
+                console.log(db.collections!.field_dictionary_collection);
+
                 // check fieldId exists
-                if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
-                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                }
+                // if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
+                //     throw new GraphQLError('File description is qinvalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                // }
+
                 // check field permission
                 if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, targetVisitId)) {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -156,8 +183,8 @@ export const fileResolvers = {
 
                             try {
                                 if (
-                                    !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
-                                    !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
+                                    // !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
+                                    // !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
                                     !validate(participantId.substr(1) ?? '') ||
                                     !validate(deviceId.substr(3) ?? '') ||
                                     !startDate || !endDate ||
