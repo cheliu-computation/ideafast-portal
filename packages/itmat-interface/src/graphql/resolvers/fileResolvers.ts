@@ -61,7 +61,7 @@ export const fileResolvers = {
                 }
                 return acc;
             }, {});
-
+            console.log("no error here")
             // if the description object is empty, then the file is study-level data
             // otherwise, a subjectId must be provided in the description object
             // we will check other properties in the decription object (deviceId, startDate, endDate)
@@ -79,33 +79,10 @@ export const fileResolvers = {
             // If yes, then the code validates the participant ID and other properties,
             // infers the target field ID, and checks permissions for this field.
             // if not, then the file is study-level data
-            if (!parsedDescription.participantId) {
+            if (!parsedDescription.drawingId) {
                 isStudyLevel = true;
             } else {
                 isStudyLevel = false;
-                // if (!Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase())) {
-                //     throw new GraphQLError('File description is qinvalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                // }
-                // check deviceId, startDate, endDate if necessary
-
-                if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase())) {
-                    console.log('true');
-                } else {
-                    console.log(Object.keys(deviceTypes));
-                    console.log(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase());
-                    console.log(Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()));
-                }
-                if (!validate(parsedDescription.participantId?.substr(1) ?? '')) {
-                    console.log('true');
-                } else {
-                    console.log(!validate(parsedDescription.participantId?.substr(1) ?? ''));
-                }
-
-                if (!validate(parsedDescription.deviceId.substr(3) ?? '')) {
-                    console.log('true');
-                } else {
-                    console.log(!validate(parsedDescription.deviceId.substr(3) ?? ''));
-                }
 
                 // if (parsedDescription.deviceId && parsedDescription.startDate && parsedDescription.endDate) {
                 //     if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
@@ -121,12 +98,11 @@ export const fileResolvers = {
                 if (parsedDescription.fieldId) {
                     targetFieldId = parsedDescription.fieldId;
                 } else {
-                    const device = parsedDescription.deviceId?.slice(0, 3);
-                    targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
+                    // const device = parsedDescription.deviceId?.slice(0, 3);
+                    // targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
+                    targetFieldId = parsedDescription.drawingName?.slice(0, 4)
                 }
 
-                console.log(targetFieldId);
-                console.log(db.collections!.field_dictionary_collection);
 
                 // check fieldId exists
                 // if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
@@ -138,7 +114,7 @@ export const fileResolvers = {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
-            // end modified part
+            // end modified part s
 
             const file = await args.file;
             const fileNameParts = file.filename.split('.');
@@ -160,19 +136,58 @@ export const fileResolvers = {
                             const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
                             let startDate;
                             let endDate;
-                            let participantId;
-                            let deviceId;
+                            // let participantId;
+                            // let deviceId;
+                            let drawingId;
+                            let drawingName;
+                            let dieType;
+                            let extrusionMaterial;
+                            let pressTonnage;
+                            let lubricationScheme;
+                            let maxLoad;
+                            let diameterOfRigOutlet;
+                            let billetTempAtInput;
+                            let allowedTempVariation;
+                            let toolingCost;
+                            let dieMaterial;
+                            let dieThickness;
+                            let backerMaterial;
+                            let backerThickness;
+                            let sinkInPresent;
+                            let tightestTolerance;
+                            let profileName;
+                            let cClass
                             // check description first, then filename
                             if (args.description) {
                                 const parsedDescription = JSON.parse(args.description);
                                 startDate = parseInt(parsedDescription.startDate);
                                 endDate = parseInt(parsedDescription.endDate);
-                                participantId = parsedDescription.participantId.toString();
-                                deviceId = parsedDescription.deviceId.toString();
+                                // participantId = parsedDescription.participantId.toString();
+                                // deviceId = parsedDescription.deviceId.toString();
+                                drawingId = parsedDescription.drawingId.toString();
+                                drawingName = parsedDescription.drawingName.toString();
+                                profileName = parsedDescription.profileName.toString();
+                                dieType = parsedDescription.dieType.toString();
+                                extrusionMaterial = parsedDescription.extrusionMaterial.toString();
+                                cClass = parsedDescription.class.toString();
+                                pressTonnage = parsedDescription.pressTonnage.toString();
+                                lubricationScheme = parsedDescription.lubricationScheme.toString();
+                                maxLoad = parsedDescription.maxLoad.toString();
+                                diameterOfRigOutlet = parsedDescription.diameterOfRigOutlet.toString();
+                                billetTempAtInput = parsedDescription.billetTempAtInput.toString();
+                                allowedTempVariation = parsedDescription.allowedTempVariation.toString();
+                                toolingCost = parsedDescription.toolingCost.toString();
+                                dieMaterial = parsedDescription.dieMaterial.toString();
+                                dieThickness = parsedDescription.dieThickness.toString();
+                                backerMaterial = parsedDescription.backerMaterial.toString();
+                                backerThickness = parsedDescription.backerThickness.toString();
+                                sinkInPresent = parsedDescription.sinkInPresent.toString();
+                                tightestTolerance = parsedDescription.tightestTolerance.toString();
+
                             } else if (matcher.test(file.filename)) {
                                 const particles = file.filename.split('-');
-                                participantId = particles[0];
-                                deviceId = particles[1];
+                                // participantId = particles[0];
+                                // deviceId = particles[1];
                                 startDate = particles[2];
                                 endDate = particles[3];
                             } else {
@@ -181,31 +196,51 @@ export const fileResolvers = {
                             }
 
 
-                            try {
-                                if (
-                                    // !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
-                                    // !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
-                                    !validate(participantId.substr(1) ?? '') ||
-                                    !validate(deviceId.substr(3) ?? '') ||
-                                    !startDate || !endDate ||
-                                    (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
-                                ) {
-                                    reject(new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                                    return;
-                                }
-                            } catch (e) {
-                                reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                                return;
-                            }
+                            // try {
+                            //     if (
+                            //         // !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
+                            //         // !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
+                            //         !validate(drawingId.substr(1) ?? '') ||
+                            //         !validate(drawingName.substr(3) ?? '') ||
+                            //         !startDate || !endDate ||
+                            //         (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
+                            //     ) {
+                            //         reject(new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                            //         return;
+                            //     }
+                            // } catch (e) {
+                            //     reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                            //     return;
+                            // }
 
                             const typedStartDate = new Date(startDate);
                             const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
                             const typedEndDate = new Date(endDate);
                             const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
-                            fileEntry.fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+                            // fileEntry.fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+                            fileEntry.fileName = `${parsedDescription.drawingId.toUpperCase()}-${parsedDescription.drawingName.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+
                             fileEntry.metadata = {
-                                participantId: parsedDescription.participantId,
-                                deviceId: parsedDescription.deviceId,
+                                drawingId: parsedDescription.drawingId,
+                                drawingName: parsedDescription.drawingName,
+                                profileName: parsedDescription.profileName,
+                                dieType: parsedDescription.dieType,
+                                extrusionMaterial: parsedDescription.extrusionMaterial,
+                                class: parsedDescription.class,
+                                pressTonnage: parsedDescription.pressTonnage,
+                                lubricationScheme: parsedDescription.lubricationScheme,
+                                maxLoad: parsedDescription.maxLoad,
+                                diameterOfRigOutlet: parsedDescription.diameterOfRigOutlet,
+                                billetTempAtInput: parsedDescription.billetTempAtInput,
+                                allowedTempVariation: parsedDescription.allowedTempVariation,
+                                toolingCost: parsedDescription.toolingCost,
+                                dieMaterial: parsedDescription.dieMaterial,
+                                dieThickness: parsedDescription.dieThickness,
+                                backerMaterial: parsedDescription.backerMaterial,
+                                backerThickness: parsedDescription.backerThickness,
+                                sinkInPresent: parsedDescription.sinkInPresent,
+                                tightestTolerance: parsedDescription.tightestTolerance,
+
                                 startDate: parsedDescription.startDate, // should be in milliseconds
                                 endDate: parsedDescription.endDate
                             };
@@ -299,6 +334,7 @@ export const fileResolvers = {
                         }
 
                     } catch (error) {
+                        console.log(error);
                         reject(new GraphQLError('General upload error', { extensions: { code: errorCodes.UNQUALIFIED_ERROR, error } }));
                     }
                 })();
